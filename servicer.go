@@ -178,7 +178,7 @@ type Handle interface {
 	CloseDo()
 }
 
-// Commanderdprovides in-service command handling.
+// Commander provides the logic for in-service command handling.
 type Commander interface {
 	// Do the command, the parameter and returns map directly to Handle.Do.
 	Do(request interface{}) (response interface{}, err error)

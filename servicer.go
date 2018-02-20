@@ -365,11 +365,11 @@ func canApplyStatus(current Status, new Status) bool {
 //   Loop:
 //     for {
 //       select {
-//       case <- control.Stop:
+//       case <-control.Stop:
 //         // Stop request received
 //         control.Stopping()
 //         break Loop
-//       case cmd, ok := control.Command:
+//       case cmd, ok := <-control.Command:
 //         // Command received
 //         control.Perform(cmd, ok, commander);
 //       // Actual service logic here

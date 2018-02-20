@@ -66,26 +66,17 @@ import (
 type State int
 
 const (
-	// Created services are not yet running
-	Created State = iota
-	// Starting services have been launched
-	Starting
-	// Running services have confirmed they are running
-	Running
-	// Stopping services have confirmed they are to stop
-	Stopping
-	// Stopped services have ended
-	Stopped
+	Created  State = iota // Not yet running
+	Starting              // Launched by Servicer
+	Running               // Confirmed running
+	Stopping              // Stopping
+	Stopped               // Confirmed Stopped
 
-	// Unknown state indicates the state monitor was not available
-	Unknown State = 0x6000
+	Unknown State = 0x6000 // Indicates state monitor unavailable
 
-	// StatusQuery is a condtion to return the current state immediately
-	StatusQuery State = 0x8000
-	// StatusNext is a condtion to return on the next status update
-	StatusNext State = 0x8001
-	// StatusStateChange is a condtion to return only when the state changes
-	StatusStateChange State = 0x8002
+	StatusQuery       State = 0x8000 // Return current state
+	StatusNext        State = 0x8001 // Return on next status update
+	StatusStateChange State = 0x8002 // Return on next state change
 )
 
 //go:generate stringer -type=State

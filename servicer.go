@@ -58,6 +58,7 @@ package servicer
 import (
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"time"
 )
 
@@ -207,6 +208,11 @@ type Control struct {
 
 	// Command delivers Do commands to the service.
 	Command <-chan Command
+
+	// OnPanic, if defined, is invoked to determine the response
+	// to use when auto-stopping on panic. The parameter is the
+	// result from the recover() call.
+	OnPanic func(r interface{}) interface{}
 
 	// Status delivers status updates to the monitor.
 	status chan<- Status
@@ -395,8 +401,13 @@ func recoveryCloser(control Control) {
 func recoveryStopper(control Control) {
 	r := recover()
 	if r != nil {
-		err := fmt.Sprintf("Caught panic: %s", r)
-		control.status <- Status{Stopped, err, time.Now()}
+		var detail interface{}
+		if control.OnPanic == nil {
+			detail = fmt.Sprintf("Caught panic: %s", r)
+		} else {
+			detail = control.OnPanic(r)
+		}
+		control.status <- Status{Stopped, detail, time.Now()}
 	}
 }
 
@@ -714,7 +725,13 @@ func New(service Service) Handle {
 
 	servicer := servicer{start, stop, statusRequest}
 	handle := handle{&servicer, command}
-	control := Control{stop, command, status}
+
+	// TODO figure out how to make this configurable
+	debugPanic := func(r interface{}) interface{} {
+		return fmt.Sprintf("Caught panic %s\n%s", r, debug.Stack())
+	}
+
+	control := Control{Stop: stop, Command: command, OnPanic: debugPanic, status: status}
 	initialStatus := Status{Created, nil, time.Now()}
 
 	go statusMonitor(status, statusRequest, initialStatus,
